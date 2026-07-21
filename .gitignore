@@ -1,0 +1,44 @@
+# ==========================================================================
+#  SECRETS — NEVER COMMIT THESE. They authenticate YOUR device to YOUR AWS.
+#  If these ever land on GitHub, anyone could impersonate your device.
+# ==========================================================================
+firmware/**/secrets.h
+*.pem
+*.pem.crt
+*.pem.key
+*.key
+*.csr
+*-certificate.pem.crt
+*-private.pem.key
+*-public.pem.key
+AmazonRootCA*.pem
+connect_device_package.zip
+*connection_kit*
+*.zip
+
+# AWS SAM / CLI build artifacts
+.aws-sam/
+samconfig.toml
+
+# Python (Lambda)
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Arduino / PlatformIO build output
+*.bin
+*.elf
+*.hex
+.pio/
+build/
+*.pio.nvram
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.claude/
+*.swp
+*~

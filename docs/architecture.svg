@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111a3a"/><stop offset="1" stop-color="#080d1c"/>
+    </linearGradient>
+    <marker id="a" markerWidth="12" markerHeight="12" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#4f7cff"/>
+    </marker>
+  </defs>
+
+  <rect width="1180" height="560" fill="url(#bg)"/>
+
+  <!-- header -->
+  <rect x="40" y="34" width="26" height="30" rx="4" fill="#4f7cff"/>
+  <path d="M53 40 l0 12 l-8 -3 l0 -6 z" fill="#0d1533"/>
+  <text x="80" y="50" fill="#e8edff" font-size="25" font-weight="800">WiFi Intrusion Detection System</text>
+  <text x="80" y="74" fill="#8794c4" font-size="14.5">ESP32 · AWS serverless · encrypted alerts to your phone · runs at $0 / month</text>
+
+  <!-- ===== DEVICE ===== -->
+  <rect x="40" y="110" width="330" height="360" rx="16" fill="#111a35" stroke="#1d2950"/>
+  <text x="64" y="146" fill="#4f7cff" font-size="12" font-weight="800" letter-spacing="1.2">THE DEVICE</text>
+  <text x="64" y="176" fill="#e8edff" font-size="18" font-weight="700">ESP32-WROOM-32</text>
+  <text x="64" y="198" fill="#8794c4" font-size="12.5">Passive 802.11 monitor mode (promiscuous)</text>
+
+  <rect x="64" y="220" width="282" height="52" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="80" y="246" fill="#e8edff" font-size="14" font-weight="600">Deauth / disassoc floods</text>
+  <text x="80" y="264" fill="#8794c4" font-size="11.5">management-frame signature 0xC0 / 0xA0</text>
+
+  <rect x="64" y="282" width="282" height="52" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="80" y="308" fill="#e8edff" font-size="14" font-weight="600">Evil-twin / rogue AP</text>
+  <text x="80" y="326" fill="#8794c4" font-size="11.5">same SSID under an unknown BSSID</text>
+
+  <rect x="64" y="344" width="282" height="52" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="80" y="370" fill="#e8edff" font-size="14" font-weight="600">Unknown device joined</text>
+  <text x="80" y="388" fill="#8794c4" font-size="11.5">association frames · baseline in flash (NVS)</text>
+
+  <text x="64" y="430" fill="#34d399" font-size="12" font-weight="700">X.509 mutual TLS · unique device identity</text>
+  <text x="64" y="450" fill="#8794c4" font-size="11.5">connects only to send, then resumes monitoring</text>
+
+  <!-- arrow 1 -->
+  <line x1="372" y1="290" x2="428" y2="290" stroke="#4f7cff" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="400" y="278" fill="#8794c4" font-size="11" text-anchor="middle">TLS 1.2</text>
+
+  <!-- ===== CLOUD ===== -->
+  <rect x="430" y="110" width="360" height="360" rx="16" fill="#111a35" stroke="#1d2950"/>
+  <text x="454" y="146" fill="#4f7cff" font-size="12" font-weight="800" letter-spacing="1.2">THE CLOUD · AWS (always-free)</text>
+
+  <rect x="454" y="164" width="312" height="46" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="470" y="192" fill="#e8edff" font-size="14" font-weight="600">IoT Core (MQTT)  ·  or  ·  Lambda Function URL</text>
+
+  <line x1="610" y1="210" x2="610" y2="236" stroke="#4f7cff" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <rect x="454" y="238" width="312" height="46" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="470" y="266" fill="#e8edff" font-size="14" font-weight="600">AWS Lambda (Python) — parse · route · format</text>
+
+  <line x1="540" y1="284" x2="540" y2="310" stroke="#4f7cff" stroke-width="2.5" marker-end="url(#a)"/>
+  <line x1="680" y1="284" x2="680" y2="310" stroke="#4f7cff" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <rect x="454" y="312" width="150" height="70" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="470" y="338" fill="#e8edff" font-size="13.5" font-weight="600">SNS</text>
+  <text x="470" y="358" fill="#8794c4" font-size="11.5">email alert</text>
+
+  <rect x="616" y="312" width="150" height="70" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="632" y="338" fill="#e8edff" font-size="13.5" font-weight="600">DynamoDB</text>
+  <text x="632" y="358" fill="#8794c4" font-size="11.5">alert history</text>
+
+  <text x="454" y="426" fill="#34d399" font-size="12" font-weight="700">IAM least-privilege · no VPC · no NAT</text>
+  <text x="454" y="446" fill="#8794c4" font-size="11.5">Lambda · SNS · DynamoDB · CloudWatch = permanently free</text>
+
+  <!-- arrow 2 -->
+  <line x1="792" y1="290" x2="848" y2="290" stroke="#4f7cff" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="820" y="278" fill="#8794c4" font-size="11" text-anchor="middle">alerts</text>
+
+  <!-- ===== YOU ===== -->
+  <rect x="850" y="110" width="290" height="360" rx="16" fill="#111a35" stroke="#1d2950"/>
+  <text x="874" y="146" fill="#4f7cff" font-size="12" font-weight="800" letter-spacing="1.2">YOU</text>
+
+  <rect x="874" y="168" width="242" height="70" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="890" y="196" fill="#e8edff" font-size="14" font-weight="600">Email notification</text>
+  <text x="890" y="216" fill="#8794c4" font-size="11.5">instant, on your phone</text>
+
+  <rect x="874" y="250" width="242" height="150" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="890" y="278" fill="#e8edff" font-size="14" font-weight="600">Dashboard app</text>
+  <text x="890" y="298" fill="#8794c4" font-size="11.5">PWA · desktop + iPhone</text>
+  <rect x="890" y="312" width="60" height="76" rx="8" fill="#0d1533" stroke="#2c3a72"/>
+  <circle cx="920" cy="380" r="3" fill="#4f7cff"/>
+  <rect x="898" y="322" width="44" height="46" rx="3" fill="#0e1430"/>
+  <rect x="966" y="326" width="140" height="62" rx="6" fill="#0d1533" stroke="#2c3a72"/>
+  <rect x="974" y="334" width="124" height="40" rx="3" fill="#0e1430"/>
+  <circle cx="1036" cy="382" r="2.5" fill="#34d399"/>
+
+  <!-- footer badge -->
+  <rect x="40" y="500" width="1100" height="34" rx="10" fill="#0e1430" stroke="#26325e"/>
+  <text x="60" y="522" fill="#e8edff" font-size="13" font-weight="600">$0 / month</text>
+  <text x="150" y="522" fill="#8794c4" font-size="12.5">Wireless security · X.509 mutual TLS · IAM least-privilege · serverless AWS · cross-platform PWA · fully documented</text>
+</svg>

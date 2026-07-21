@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowConnectAsThisDeviceOnly",
+      "Effect": "Allow",
+      "Action": "iot:Connect",
+      "Resource": "arn:aws:iot:eu-central-1:ACCOUNT_ID:client/WIDS_ESP32"
+    },
+    {
+      "Sid": "AllowPublishAlertsTopicOnly",
+      "Effect": "Allow",
+      "Action": "iot:Publish",
+      "Resource": "arn:aws:iot:eu-central-1:ACCOUNT_ID:topic/wids/alerts"
+    }
+  ]
+}

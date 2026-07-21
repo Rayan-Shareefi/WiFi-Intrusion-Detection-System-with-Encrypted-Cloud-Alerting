@@ -1,0 +1,23 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublishAlertsToSns",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "Resource": "arn:aws:sns:eu-central-1:ACCOUNT_ID:wids-alerts"
+    },
+    {
+      "Sid": "PutHeartbeatMetric",
+      "Effect": "Allow",
+      "Action": "cloudwatch:PutMetricData",
+      "Resource": "*"
+    },
+    {
+      "Sid": "WriteAlertHistory",
+      "Effect": "Allow",
+      "Action": "dynamodb:PutItem",
+      "Resource": "arn:aws:dynamodb:eu-central-1:ACCOUNT_ID:table/WidsAlerts"
+    }
+  ]
+}
