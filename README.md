@@ -90,7 +90,9 @@ cloud/
   lambda-dashboard/    dashboard Lambda (serves the PWA + JSON API)
   *-setup.md           click-by-click AWS console guides
 webapp/index.html      the dashboard PWA (readable source)
+webapp/demo/           public sample-data demo (deploy to Vercel / GitHub Pages)
 docs/                  setup, cost safety, hardening, security review, portfolio notes
+docs/architecture.svg  architecture diagram · docs/demo-animation.html  animated explainer
 ```
 
 ---

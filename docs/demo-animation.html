@@ -117,9 +117,9 @@
 
 <script>
   var scenes = [
-    {d:'⚠ Deauth attack detected',  t:'Deauth attack',   m:'−42 dBm'},
-    {d:'⚠ Evil-twin AP detected',   t:'Evil twin AP',    m:'unknown BSSID'},
-    {d:'⚠ Unknown device joined',   t:'Unknown device',  m:'AzureWave'}
+    {d:'⚠ Deauth attack detected',  t:'Deauth attack',   m:'−42 dBm',       c:'#f87171'},
+    {d:'⚠ Evil-twin AP detected',   t:'Evil twin AP',    m:'unknown BSSID', c:'#f87171'},
+    {d:'⚠ Unknown device joined',   t:'Unknown device',  m:'AzureWave',     c:'#fbbf24'}
   ];
   var i = 0;
   function set(){
@@ -127,10 +127,12 @@
     document.getElementById('detect').textContent = s.d;
     document.getElementById('ptitle').textContent = s.t;
     document.getElementById('pmeta').textContent  = s.m;
+    document.querySelector('.banner .ic').style.background = s.c;   // match dashboard severity colour
     i++;
   }
   set();
-  setInterval(set, 7000);   // matches the 7s CSS loop -> new attack type each cycle
+  // drive the swap off the CSS loop itself (drift-proof) -> new attack type each 7s iteration
+  document.querySelector('.esp').addEventListener('animationiteration', set);
 </script>
 </body>
 </html>

@@ -88,7 +88,7 @@ created a **$0.01** billing alert — let's confirm it's healthy:
 
 ## ✅ M0 done when
 
-- Region is **us-east-1**.
+- Region is **eu-central-1** (Frankfurt) for all project resources (us-east-1 only for the billing alarm).
 - **Zero-spend budget** exists and is active.
 - A **billing alarm** exists (yours, verified — not in ALARM state).
 - **Free Tier alerts** are enabled.

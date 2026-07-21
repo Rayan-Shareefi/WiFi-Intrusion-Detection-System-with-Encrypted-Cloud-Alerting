@@ -1,7 +1,8 @@
 """
 WIDS alert handler — AWS Lambda (Python).
 
-Triggered by the IoT Rule on 'wids/alerts'. It:
+Triggered two ways: the IoT Rule on 'wids/alerts' (MQTT path), or a Lambda
+Function URL POST (the $0-forever HTTPS path). It:
   - emails real alerts via SNS (now with a best-effort device-vendor hint),
   - records alerts to DynamoDB (the dashboard's history),
   - tracks liveness (heartbeat/device_online) via a CloudWatch metric + a single
@@ -9,7 +10,8 @@ Triggered by the IoT Rule on 'wids/alerts'. It:
   - stores the device's saved-MAC list as a "DEVICELIST" record,
   - sanitizes every incoming field (security-review finding F8).
 
-Env vars:  SNS_TOPIC_ARN (required),  TABLE_NAME (optional; enables history/dashboard).
+Env vars:  SNS_TOPIC_ARN (required),  TABLE_NAME (optional; enables history/dashboard),
+           INGEST_TOKEN (required for the Function URL / HTTPS ingest path).
 IAM role:  sns:Publish, cloudwatch:PutMetricData, dynamodb:PutItem.
 Keep this function OUT of a VPC (free outbound; a VPC would need a paid NAT).
 """
@@ -228,7 +230,9 @@ def _handle_http(event):
         payload = json.loads(raw)
     except Exception:
         return {"statusCode": 400, "body": "bad json"}
-    _process(payload)
+    result = _process(payload)
+    if isinstance(result, dict) and result.get("status") == "error":
+        return {"statusCode": 500, "body": "server error"}   # e.g. SNS_TOPIC_ARN unset -> device won't clear g_missed
     return {"statusCode": 200, "body": "ok"}
 
 

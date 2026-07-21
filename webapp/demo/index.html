@@ -70,8 +70,8 @@ const $=s=>document.querySelector(s), now=Math.floor(Date.now()/1000);
 const ICON={deauth_flood:'📡',disassoc_flood:'📡',evil_twin:'👯',unknown_device:'❓',test_trigger:'🧪'};
 const NAME={deauth_flood:'Deauthentication flood',disassoc_flood:'Disassociation flood',evil_twin:'Evil-twin access point',unknown_device:'Unknown device joined',test_trigger:'Test alert'};
 const SEV={deauth_flood:'high',disassoc_flood:'high',evil_twin:'high',unknown_device:'mid',test_trigger:'low'};
-function ago(ts){let d=now-ts;if(d<60)return d+'s ago';if(d<3600)return(d/60|0)+'m ago';if(d<86400)return(d/3600|0)+'h ago';return(d/86400|0)+'d ago';}
-function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
+function ago(ts){let d=now-ts;if(d<0)d=0;if(d<60)return d+'s ago';if(d<3600)return(d/60|0)+'m ago';if(d<86400)return(d/3600|0)+'h ago';return(d/86400|0)+'d ago';}
+function esc(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
 const DEMO={
   lastSeen:now-38,
   alerts:[

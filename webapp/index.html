@@ -152,7 +152,7 @@ function ago(ts,now){if(!ts)return'never';let d=now-ts;if(d<0)d=0;
   if(d<60)return d+'s ago';if(d<3600)return(d/60|0)+'m ago';if(d<86400)return(d/3600|0)+'h ago';return(d/86400|0)+'d ago';}
 function shortAgo(ts,now){if(!ts)return'—';let d=now-ts;if(d<0)d=0;
   if(d<60)return d+'s';if(d<3600)return(d/60|0)+'m';if(d<86400)return(d/3600|0)+'h';return(d/86400|0)+'d';}
-function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
+function esc(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
 function gate(m){$('#dash').hidden=true;$('#gate').hidden=false;if(m!==undefined)$('#msg').textContent=m;}
 
 async function load(){

@@ -29,10 +29,11 @@
 #include <HTTPClient.h>
 
 // ---- Cloud path -----------------------------------------------------------
-//  UNCOMMENT for the $0-FOREVER path: HTTPS POST to a Lambda Function URL, so
-//  every service used is always-free (no AWS IoT Core, no 12-month clock).
-//  Requires LAMBDA_URL + ALERT_BEARER_TOKEN in secrets.h. Guide: docs/ZERO-COST-FOREVER.md
-//  Left commented = the X.509 mutual-TLS MQTT path to AWS IoT Core (the showcase).
+//  This build ships with the $0-FOREVER HTTPS path ENABLED (line below): the
+//  device POSTs alerts to a Lambda Function URL, so every AWS service used is
+//  always-free (no IoT Core, no 12-month clock). Needs LAMBDA_URL +
+//  ALERT_BEARER_TOKEN in secrets.h. Guide: docs/ZERO-COST-FOREVER.md
+//  To use the X.509 mutual-TLS MQTT path to AWS IoT Core instead, comment it out.
 #define USE_HTTPS_INGEST
 
 // ---- Tuning ---------------------------------------------------------------
@@ -40,7 +41,7 @@
 #define DEAUTH_THRESHOLD  20         // frames/window => attack
 #define COOLDOWN_MS       30000UL    // min gap between alerts of the SAME type
 #define SCAN_INTERVAL_MS  180000UL   // evil-twin scan every 3 min
-#define DEVICE_LEARN_MS   300000UL    // 30 s for testing; use 300000UL (5 min) for real use
+#define DEVICE_LEARN_MS   300000UL    // 5-min learn window (use 30000UL = 30 s for quick testing)
 #define HEARTBEAT_MS      1800000UL  // send a heartbeat every 30 min (offline detection)
 #define MAX_KNOWN_BSSIDS  8
 #define MAX_KNOWN_DEVICES 32
@@ -66,7 +67,7 @@ int      g_homeChannel   = 1;
 
 // ---- Baselines -------------------------------------------------------------
 uint8_t  g_knownBssids[MAX_KNOWN_BSSIDS][6];   int g_knownCount = 0;         // evil-twin
-uint8_t  g_knownDevices[MAX_KNOWN_DEVICES][6]; int g_knownDeviceCount = 0;   // devices
+uint8_t  g_knownDevices[MAX_KNOWN_DEVICES][6]; int g_knownDeviceCount = 0, g_devEvict = 0;  // devices
 
 // ---- Alert target + bookkeeping --------------------------------------------
 uint8_t  g_alertMac[6] = {0};
@@ -186,7 +187,7 @@ bool sendJson(const char *json, size_t len) {
   https.addHeader("Authorization", String("Bearer ") + ALERT_BEARER_TOKEN);
   int code = https.POST((uint8_t *)json, len);
   https.end();
-  return code == 200;
+  return code >= 200 && code < 300;
 #else
   return client.publish(AWS_TOPIC_ALERTS, (const uint8_t *)json, len);
 #endif
@@ -354,9 +355,14 @@ void saveKnownDevices() {
 }
 
 void addKnownDevice(const uint8_t *mac) {
-  if (g_knownDeviceCount >= MAX_KNOWN_DEVICES) return;   // list full: stop learning
-  memcpy(g_knownDevices[g_knownDeviceCount], mac, 6);
-  g_knownDeviceCount++;
+  int idx;
+  if (g_knownDeviceCount < MAX_KNOWN_DEVICES) {          // room: append
+    idx = g_knownDeviceCount++;
+  } else {                                               // full: evict oldest (round-robin) so a
+    idx = g_devEvict;                                    // 33rd+ device is still remembered and
+    g_devEvict = (g_devEvict + 1) % MAX_KNOWN_DEVICES;   // doesn't re-alert every cooldown forever
+  }
+  memcpy(g_knownDevices[idx], mac, 6);
   saveKnownDevices();                                    // persist to flash (survives reboot)
 }
 

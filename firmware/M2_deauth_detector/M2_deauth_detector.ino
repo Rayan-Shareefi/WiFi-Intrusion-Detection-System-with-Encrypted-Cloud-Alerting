@@ -73,6 +73,7 @@ void formatMac(const uint8_t *mac, char *out) {
 void IRAM_ATTR snifferCallback(void *buf, wifi_promiscuous_pkt_type_t type) {
   if (type != WIFI_PKT_MGMT) return;               // we only asked for mgmt frames
   const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buf;
+  if (ppkt->rx_ctrl.sig_len < 24) return;          // guard: need a full 802.11 MAC header first
   const uint8_t *p = ppkt->payload;                // raw 802.11 frame bytes
 
   uint8_t fc = p[0];                               // frame control byte 0
