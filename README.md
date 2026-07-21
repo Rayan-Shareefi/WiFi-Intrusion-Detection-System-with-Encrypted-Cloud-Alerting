@@ -28,6 +28,16 @@ When something is detected, the device switches out of monitor mode, connects, a
 
 ---
 
+## 🎬 See it in action
+
+<p align="center">
+  <img src="docs/media/demo.gif" alt="WIDS demo — an ESP32 detects an attack, sends an encrypted alert through AWS, and it arrives on your phone" width="720">
+</p>
+
+<p align="center"><em>One ESP32 detects an attack → encrypted, certificate-authenticated alert through AWS → notification on your phone.</em></p>
+
+---
+
 ## Architecture
 
 ```mermaid
@@ -56,7 +66,9 @@ Shows a live **ONLINE/OFFLINE** sensor badge, a **recent-alerts feed** with seve
 your **saved device list** — each MAC annotated with a best-effort **manufacturer hint** (Apple /
 Intel / Samsung…) and a flag for **randomized "private" MACs**.
 
-> **Screenshots:** add yours to `docs/screenshots/` and link them here.
+<p align="center">
+  <img src="docs/media/dashboard.png" alt="WIDS dashboard — online sensor badge, recent alerts with vendor labels, and the known-device list" width="820">
+</p>
 
 Setup: [docs/DASHBOARD-APP.md](docs/DASHBOARD-APP.md)
 
