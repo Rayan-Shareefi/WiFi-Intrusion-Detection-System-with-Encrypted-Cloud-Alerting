@@ -12,7 +12,7 @@ Env vars:
   TABLE_NAME   (default WidsAlerts)   DynamoDB history table
   DEVICE_NAME  (default WIDS_ESP32)   Thing name used as the alert partition key
   DASH_TOKEN   (required)             a long random passphrase you choose
-IAM role needs: dynamodb:Query + dynamodb:GetItem + dynamodb:BatchWriteItem on the table.
+IAM role needs (read-only): dynamodb:Query + dynamodb:GetItem on the table.
 """
 
 import json
@@ -28,6 +28,7 @@ TABLE_NAME = os.environ.get("TABLE_NAME", "WidsAlerts")
 DEVICE_NAME = os.environ.get("DEVICE_NAME", "WIDS_ESP32")
 TOKEN = os.environ.get("DASH_TOKEN", "")
 ONLINE_WINDOW = 3900  # seconds (~65 min); the device heartbeats every 30 min
+MAX_ALERTS = 100      # newest N alerts kept for the dashboard ("show all" cap)
 
 ALERT_TYPES = {"deauth_flood", "disassoc_flood", "evil_twin", "unknown_device", "test_trigger"}
 
@@ -103,7 +104,7 @@ def _resp(status, body, ctype="application/json"):
 def _data():
     t = ddb.Table(TABLE_NAME)
     q = t.query(KeyConditionExpression=Key("device").eq(DEVICE_NAME),
-                ScanIndexForward=False, Limit=40)
+                ScanIndexForward=False, Limit=MAX_ALERTS)
     items = q.get("Items", [])
     now = int(time.time())
     alerts = []
@@ -120,7 +121,7 @@ def _data():
             "channel": str(i.get("channel", "")),
             "count":   int(i.get("count", 0)),
         })
-    alerts = alerts[:40]
+    alerts = alerts[:MAX_ALERTS]
 
     ls = t.get_item(Key={"device": "LASTSEEN", "ts": 0}).get("Item") or {}
     dl = t.get_item(Key={"device": "DEVICELIST", "ts": 0}).get("Item") or {}
@@ -143,27 +144,6 @@ def _authed(event):
     return bool(TOKEN) and hmac.compare_digest(token, TOKEN)
 
 
-def _clear():
-    """Delete all alert rows (partition = DEVICE_NAME). Keeps LASTSEEN / DEVICELIST."""
-    t = ddb.Table(TABLE_NAME)
-    deleted, start_key = 0, None
-    while True:
-        kw = {"KeyConditionExpression": Key("device").eq(DEVICE_NAME), "ProjectionExpression": "ts"}
-        if start_key:
-            kw["ExclusiveStartKey"] = start_key
-        resp = t.query(**kw)
-        items = resp.get("Items", [])
-        if items:
-            with t.batch_writer() as bw:
-                for it in items:
-                    bw.delete_item(Key={"device": DEVICE_NAME, "ts": int(it["ts"])})
-                    deleted += 1
-        start_key = resp.get("LastEvaluatedKey")
-        if not start_key:
-            break
-    return deleted
-
-
 def lambda_handler(event, context):
     qs = event.get("queryStringParameters") or {}
 
@@ -174,15 +154,6 @@ def lambda_handler(event, context):
             return _resp(200, json.dumps(_data(), default=_num))
         except Exception as e:
             print("data error:", e)
-            return _resp(500, json.dumps({"error": "server"}))
-
-    if qs.get("clear") == "1":
-        if not _authed(event):
-            return _resp(401, json.dumps({"error": "unauthorized"}))
-        try:
-            return _resp(200, json.dumps({"ok": True, "deleted": _clear()}))
-        except Exception as e:
-            print("clear error:", e)
             return _resp(500, json.dumps({"error": "server"}))
 
     return _resp(200, HTML, "text/html; charset=utf-8")
@@ -248,10 +219,14 @@ input:focus{border-color:var(--accent)}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 10px;text-align:center}
 .stat .n{font-size:21px;font-weight:800;line-height:1.1}
 .stat .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-top:5px}
+.stat.tap{cursor:pointer;position:relative}
+.stat.tap:hover{border-color:#2f3f7d;background:#131d3d}
+.stat.tap:active{transform:scale(.98)}
+.stat .go{position:absolute;top:7px;right:10px;font-size:13px;font-weight:800;color:var(--dim)}
 h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);margin:26px 0 10px}
-.h2row{display:flex;align-items:center;justify-content:space-between;margin:26px 0 10px}
+.h2row{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 10px}
 .h2row h2{margin:0}
-.mini{font-size:11px;padding:5px 10px}
+.morehint{font-size:11px;color:var(--dim)}
 .card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
   border-left:3px solid var(--accent);border-radius:12px;padding:13px 14px;margin-bottom:8px}
 .card.high{border-left-color:var(--bad)}
@@ -269,6 +244,19 @@ h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim
 .empty{color:var(--dim);font-size:13.5px;background:rgba(17,26,53,.55);border:1px dashed var(--line);
   border-radius:12px;padding:22px;text-align:center;line-height:1.5}
 .foot{color:var(--dim);font-size:11px;text-align:center;margin-top:28px;opacity:.75}
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;justify-content:center;
+  background:rgba(4,7,16,.62);backdrop-filter:blur(4px)}
+.modal.open{display:flex}
+.sheet{width:100%;max-width:760px;max-height:88vh;display:flex;flex-direction:column;
+  background:var(--bg2);border:1px solid var(--line);border-radius:20px 20px 0 0;
+  box-shadow:0 -18px 60px rgba(0,0,0,.55)}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:15px 18px;border-bottom:1px solid var(--line)}
+.sheet-h h3{margin:0;font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim)}
+.sheet-b{overflow-y:auto;padding:14px 16px 26px;-webkit-overflow-scrolling:touch}
+.x{background:none;border:1px solid transparent;color:var(--dim);font-size:13px;padding:6px 10px;border-radius:8px}
+.x:hover{background:var(--card);border-color:var(--line)}
+@media(min-width:620px){.modal{align-items:center}.sheet{border-radius:20px;max-height:82vh}}
 </style>
 </head>
 <body>
@@ -306,20 +294,24 @@ h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim
     </div>
 
     <div class="stats">
-      <div class="stat"><div id="sAlerts" class="n">0</div><div class="l">Alerts</div></div>
-      <div class="stat"><div id="sDevices" class="n">0</div><div class="l">Devices</div></div>
+      <div id="cAlerts" class="stat tap"><span class="go">›</span><div id="sAlerts" class="n">0</div><div class="l">Alerts</div></div>
+      <div id="cDevices" class="stat tap"><span class="go">›</span><div id="sDevices" class="n">0</div><div class="l">Devices</div></div>
       <div class="stat"><div id="sSeen" class="n">—</div><div class="l">Last seen</div></div>
     </div>
 
-    <div class="h2row"><h2>Recent activity</h2><button id="clear" class="mini">Clear</button></div>
+    <div class="h2row"><h2>Recent activity</h2><span id="moreHint" class="morehint"></span></div>
     <div id="alerts"></div>
-
-    <h2>Known devices</h2>
-    <div id="devices" class="devs"></div>
 
     <div class="foot">ESP32 · AWS serverless · auto-refreshing every 15s</div>
   </section>
 </main>
+
+<div id="modal" class="modal">
+  <div class="sheet">
+    <div class="sheet-h"><h3 id="mTitle">…</h3><button id="mClose" class="x">✕ Close</button></div>
+    <div id="mBody" class="sheet-b"></div>
+  </div>
+</div>
 
 <script>
 const $=s=>document.querySelector(s), TKEY='wids_token';
@@ -327,6 +319,7 @@ const ICON={deauth_flood:'📡',disassoc_flood:'📡',evil_twin:'👯',unknown_d
 const NAME={deauth_flood:'Deauthentication flood',disassoc_flood:'Disassociation flood',
             evil_twin:'Evil-twin access point',unknown_device:'Unknown device joined',test_trigger:'Test alert'};
 const SEV ={deauth_flood:'high',disassoc_flood:'high',evil_twin:'high',unknown_device:'mid',test_trigger:'low'};
+let state=null;
 
 function ago(ts,now){if(!ts)return'never';let d=now-ts;if(d<0)d=0;
   if(d<60)return d+'s ago';if(d<3600)return(d/60|0)+'m ago';if(d<86400)return(d/3600|0)+'h ago';return(d/86400|0)+'d ago';}
@@ -334,6 +327,18 @@ function shortAgo(ts,now){if(!ts)return'—';let d=now-ts;if(d<0)d=0;
   if(d<60)return d+'s';if(d<3600)return(d/60|0)+'m';if(d<86400)return(d/3600|0)+'h';return(d/86400|0)+'d';}
 function esc(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
 function gate(m){$('#dash').hidden=true;$('#gate').hidden=false;if(m!==undefined)$('#msg').textContent=m;}
+
+function alertCard(x,now){
+  const bits=[esc(x.mac||'—')]; if(x.vendor) bits.push(esc(x.vendor)); bits.push(esc(x.rssi)+' dBm');
+  return `<div class="card ${SEV[x.event]||'low'}"><span class="ico">${ICON[x.event]||'⚠️'}</span>`+
+    `<div class="body"><b>${NAME[x.event]||esc(x.event)}</b>`+
+    `<div class="meta">${bits.join(' · ')}</div></div>`+
+    `<span class="ago">${ago(x.ts,now)}</span></div>`;
+}
+function deviceCard(o){
+  const mac=(typeof o==='string')?o:o.mac, v=(typeof o==='string')?'':o.vendor;
+  return `<div class="dev"><div class="m">📱 ${esc(mac)}</div>`+(v?`<div class="v">${esc(v)}</div>`:'')+`</div>`;
+}
 
 async function load(){
   const t=localStorage.getItem(TKEY);
@@ -350,6 +355,7 @@ async function load(){
 }
 
 function render(d){
+  state=d;
   $('#gate').hidden=true;$('#dash').hidden=false;$('#msg').textContent='';
   const on=d.online;
   $('#status').className='pill '+(on?'on':'off');
@@ -365,32 +371,36 @@ function render(d){
   $('#sDevices').textContent=d.deviceCount;
   $('#sSeen').textContent=shortAgo(d.lastSeen,d.now);
 
-  $('#alerts').innerHTML = d.alerts.length ? d.alerts.map(x=>{
-      const bits=[esc(x.mac||'—')]; if(x.vendor) bits.push(esc(x.vendor)); bits.push(esc(x.rssi)+' dBm');
-      return `<div class="card ${SEV[x.event]||'low'}"><span class="ico">${ICON[x.event]||'⚠️'}</span>`+
-        `<div class="body"><b>${NAME[x.event]||esc(x.event)}</b>`+
-        `<div class="meta">${bits.join(' · ')}</div></div>`+
-        `<span class="ago">${ago(x.ts,d.now)}</span></div>`;
-    }).join('') : '<div class="empty">🎉 No alerts yet — your network looks quiet.</div>';
-
-  $('#devices').innerHTML = d.devices.length
-    ? d.devices.map(o=>{const mac=(typeof o==='string')?o:o.mac, v=(typeof o==='string')?'':o.vendor;
-        return `<div class="dev"><div class="m">📱 ${esc(mac)}</div>`+
-               (v?`<div class="v">${esc(v)}</div>`:'')+`</div>`;}).join('')
-    : '<div class="empty">No devices learned yet. The sensor reports its list on boot.</div>';
+  const recent=d.alerts.slice(0,3);
+  $('#alerts').innerHTML = recent.length ? recent.map(x=>alertCard(x,d.now)).join('')
+    : '<div class="empty">🎉 No alerts yet — your network looks quiet.</div>';
+  $('#moreHint').textContent = d.alerts.length>3 ? ('+'+(d.alerts.length-3)+' more — tap Alerts') : '';
 }
+
+function openSheet(mode){
+  if(!state)return;
+  if(mode==='alerts'){
+    $('#mTitle').textContent='All alerts ('+state.alerts.length+')';
+    $('#mBody').innerHTML = state.alerts.length ? state.alerts.map(x=>alertCard(x,state.now)).join('')
+      : '<div class="empty">🎉 No alerts yet — your network looks quiet.</div>';
+  }else{
+    $('#mTitle').textContent='Known devices ('+state.devices.length+')';
+    $('#mBody').innerHTML = state.devices.length ? '<div class="devs">'+state.devices.map(deviceCard).join('')+'</div>'
+      : '<div class="empty">No devices learned yet. The sensor reports its list on boot.</div>';
+  }
+  $('#modal').classList.add('open');
+}
+function closeSheet(){$('#modal').classList.remove('open');}
 
 $('#save').onclick=()=>{const t=$('#token').value.trim();if(t){localStorage.setItem(TKEY,t);load();}};
 $('#token').addEventListener('keydown',e=>{if(e.key==='Enter')$('#save').click();});
 $('#refresh').onclick=load;
-$('#logout').onclick=()=>{localStorage.removeItem(TKEY);$('#token').value='';gate('Locked.');};
-$('#clear').onclick=async()=>{
-  if(!confirm('Clear all recent activity? This permanently deletes the stored alert history.'))return;
-  const t=localStorage.getItem(TKEY);if(!t)return;
-  const b=$('#clear');b.textContent='Clearing…';
-  try{await fetch('?clear=1',{method:'POST',headers:{'x-wids-token':t}});}catch(e){}
-  b.textContent='Clear';load();
-};
+$('#logout').onclick=()=>{localStorage.removeItem(TKEY);$('#token').value='';closeSheet();gate('Locked.');};
+$('#cAlerts').onclick=()=>openSheet('alerts');
+$('#cDevices').onclick=()=>openSheet('devices');
+$('#mClose').onclick=closeSheet;
+$('#modal').onclick=e=>{if(e.target===$('#modal'))closeSheet();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
 load();setInterval(load,15000);
 </script>
 </body>

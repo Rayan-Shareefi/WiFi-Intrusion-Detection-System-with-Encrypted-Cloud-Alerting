@@ -6,8 +6,7 @@
       "Effect": "Allow",
       "Action": [
         "dynamodb:Query",
-        "dynamodb:GetItem",
-        "dynamodb:BatchWriteItem"
+        "dynamodb:GetItem"
       ],
       "Resource": "arn:aws:dynamodb:eu-central-1:ACCOUNT_ID:table/WidsAlerts"
     }

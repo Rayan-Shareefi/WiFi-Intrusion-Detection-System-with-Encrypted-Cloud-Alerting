@@ -31,11 +31,10 @@ Lambda → **Configuration → Environment variables → Edit → Add**:
 The `DASH_TOKEN` is what unlocks the dashboard — treat it like a password. You can change it any time
 here (everyone is then logged out).
 
-## 3. Permissions (least-privilege)
+## 3. Permissions (read-only, least-privilege)
 - **Configuration → Permissions** → click the **role name** (opens IAM) → **Add permissions → Create
   inline policy → JSON** → paste [`cloud/lambda-dashboard/dashboard-policy.json`](../cloud/lambda-dashboard/dashboard-policy.json)
-  (`dynamodb:Query` + `GetItem` + `BatchWriteItem` — the last powers the **Clear** button below) →
-  name it `wids-dashboard-read` → **Create policy**.
+  (only `dynamodb:Query` + `GetItem` on your table) → name it `wids-dashboard-read` → **Create policy**.
 
 ## 4. Create the Function URL (the free public HTTPS endpoint)
 - Lambda → **Configuration → Function URL → Create function URL**.
@@ -47,10 +46,10 @@ here (everyone is then logged out).
 - **iPhone:** open the URL in **Safari** → tap **Share → Add to Home Screen**. It installs an app-like
   icon that launches full-screen. Enter the token once.
 
-You'll see: an **ONLINE/OFFLINE** badge + last-contact time, a **recent-alerts** feed, and your
-**saved-device** MAC list. (Type `t` on the ESP32 to generate a test alert and watch it appear.)
-A **Clear** button next to *Recent activity* permanently deletes the stored alert history (token-gated;
-it leaves the online status + saved-device list intact).
+You'll see: an **ONLINE/OFFLINE** badge + last-contact time, the **3 most recent alerts**, and two
+tappable stat cards — **Alerts** (opens the full alert history) and **Devices** (opens your full
+saved-device list). (Type `t` on the ESP32 to generate a test alert and watch it appear.) Alert
+history auto-expires after 90 days if you enable DynamoDB TTL on the `ttl` attribute.
 
 ---
 
@@ -58,7 +57,7 @@ it leaves the online status + saved-device list intact).
 The Function URL uses **Auth type NONE**, so the *URL* is publicly reachable — but the **/data**
 endpoint returns nothing without the correct `x-wids-token` header (compared with a constant-time
 `hmac`). The page itself holds no secrets; it prompts for the token and stores it in your browser.
-- Use a **long, random** `DASH_TOKEN` — anyone who has it can view *and* **Clear** (delete) the alert history.
+- Use a **long, random** `DASH_TOKEN`.
 - **Rotate** it anytime by editing the env var.
 - Don't post your Function URL publicly.
 *(For a stricter setup you could switch the Function URL to IAM auth, but that breaks simple browser
