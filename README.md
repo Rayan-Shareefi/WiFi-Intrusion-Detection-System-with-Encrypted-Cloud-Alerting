@@ -62,12 +62,17 @@ A **PWA** that runs in any desktop browser and — via Safari's *Add to Home Scr
 on iPhone. No App Store, no hosting, no API Gateway: a single Lambda Function URL serves both the page
 and its (token-protected) data.
 
-Shows a live **ONLINE/OFFLINE** sensor badge, a **recent-alerts feed** with severity colouring, and
-your **saved device list** — each MAC annotated with a best-effort **manufacturer hint** (Apple /
-Intel / Samsung…) and a flag for **randomized "private" MACs**.
+Shows a live **ONLINE/OFFLINE** sensor badge and the **3 most recent alerts** — each MAC annotated
+with a best-effort **manufacturer hint** (Apple / Intel / Samsung…) and a flag for **randomized
+"private" MACs**. Two tappable cards open the full history: **Alerts** (every recorded alert) and
+**Devices** (your complete saved-device list).
 
 <p align="center">
-  <img src="docs/media/dashboard.png" alt="WIDS dashboard — online sensor badge, recent alerts with vendor labels, and the known-device list" width="820">
+  <img src="docs/media/dashboard.png" alt="WIDS dashboard — online sensor badge, 3 most recent alerts, and tappable Alerts/Devices cards" width="820">
+</p>
+<p align="center">
+  <img src="docs/media/alerts.png" alt="All-alerts sheet listing the full alert history" width="405">
+  <img src="docs/media/devices.png" alt="Known-devices sheet listing every saved device" width="405">
 </p>
 
 Setup: [docs/DASHBOARD-APP.md](docs/DASHBOARD-APP.md)
