@@ -37,25 +37,6 @@ When something is detected, the device switches out of monitor mode, connects, a
 <p align="center"><em>One ESP32 detects an attack → encrypted, certificate-authenticated alert through AWS → notification on your phone.</em></p>
 
 ---
-
-## Architecture
-
-```mermaid
-flowchart TD
-    A["ESP32-WROOM-32<br/>promiscuous mode, locked to the home AP channel"]
-    A -->|"detection → switch to station mode → NTP → TLS"| B
-    B["AWS IoT Core<br/>MQTT over mutual TLS 1.2 · X.509 device cert · topic wids/alerts"]
-    B -->|"IoT Rule"| C["AWS Lambda (Python)"]
-    C -->|"sns:Publish"| D["Amazon SNS"] --> E["📧 Email / phone notification"]
-    C -->|"PutItem"| F["DynamoDB (alert history)"]
-    G["📱 Dashboard PWA<br/>desktop + iPhone"] -->|"HTTPS + token"| H["Dashboard Lambda<br/>(Function URL)"] --> F
-```
-
-Everything server-side is **serverless**, in one region (`eu-central-1`), with **no VPC, no NAT
-gateway, no EC2** — which is what keeps it free.
-
----
-
 ## 📱 The dashboard app
 
 A **PWA** that runs in any desktop browser and — via Safari's *Add to Home Screen* — like a native app
@@ -76,6 +57,24 @@ with a best-effort **manufacturer hint** (Apple / Intel / Samsung…) and a flag
 </p>
 
 Setup: [docs/DASHBOARD-APP.md](docs/DASHBOARD-APP.md)
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A["ESP32-WROOM-32<br/>promiscuous mode, locked to the home AP channel"]
+    A -->|"detection → switch to station mode → NTP → TLS"| B
+    B["AWS IoT Core<br/>MQTT over mutual TLS 1.2 · X.509 device cert · topic wids/alerts"]
+    B -->|"IoT Rule"| C["AWS Lambda (Python)"]
+    C -->|"sns:Publish"| D["Amazon SNS"] --> E["📧 Email / phone notification"]
+    C -->|"PutItem"| F["DynamoDB (alert history)"]
+    G["📱 Dashboard PWA<br/>desktop + iPhone"] -->|"HTTPS + token"| H["Dashboard Lambda<br/>(Function URL)"] --> F
+```
+
+Everything server-side is **serverless**, in one region (`eu-central-1`), with **no VPC, no NAT
+gateway, no EC2** — which is what keeps it free.
 
 ---
 
