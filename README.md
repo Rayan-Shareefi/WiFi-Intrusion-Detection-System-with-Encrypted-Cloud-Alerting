@@ -4,6 +4,8 @@
 access points, and unknown devices joining your network — then delivers encrypted,
 certificate-authenticated alerts to your phone through AWS. Runs at $0/month.**
 
+public live demo: wids-demo.vercel.app
+
 ![Platform](https://img.shields.io/badge/platform-ESP32--WROOM--32-blue)
 ![Cloud](https://img.shields.io/badge/cloud-AWS%20IoT%20Core-orange)
 ![Language](https://img.shields.io/badge/code-C%2B%2B%20%7C%20Python%20%7C%20JS-informational)
