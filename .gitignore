@@ -42,3 +42,9 @@ Thumbs.db
 .claude/
 *.swp
 *~
+
+# Kept on this PC only: personal notes (career prep, publishing plan, handover)
+HANDOVER.md
+docs/PORTFOLIO.md
+docs/PUBLISH.md
+docs/DEMO-SCRIPT.md
