@@ -1,6 +1,6 @@
 # WiFi Intrusion Detection System
 
-A $6 ESP32 chip that watches a Wi-Fi network for attacks and sends an encrypted alert to a phone
+An ESP32 chip that watches a Wi-Fi network for attacks and sends an encrypted alert to a phone
 through AWS, within seconds. It runs on the AWS free tier, so it costs $0 a month.
 
 **Live demo: [wids-demo.vercel.app](https://wids-demo.vercel.app)** (sample data)
